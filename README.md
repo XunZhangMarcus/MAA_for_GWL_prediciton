@@ -1,5 +1,6 @@
 # MAA‑GWLP: Multi‑Agent Adversarial Groundwater‑Level Prediction  
 _A Robust Framework for Complex Hydro‑Temporal Forecasting_
+<img width="1030" height="495" alt="image" src="https://github.com/user-attachments/assets/85022e2c-316c-4e94-9e7c-9c288af6ba5d" />
 
 ---
 
