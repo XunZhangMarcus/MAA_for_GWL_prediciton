@@ -40,7 +40,7 @@ Both pipelines share data loaders, preprocessing utilities, and a unified config
 
 * **Multi‑Objective Generator Loss** – combines regression (L<sub>2</sub>), classification (cross‑entropy), and adversarial deception; hyper‑parameters **λ<sub>1</sub>**, **λ<sub>2</sub>**, **λ<sub>3</sub>** control trade‑offs.
 
-* **Elite‑Guided Loop** *(Eqs. 18–21)* – after every **κ** epochs, the best generator–discriminator pair undergoes **τ** epochs of focused adversarial refinement.
+* **Elite‑Guided Loop**  – after every **κ** epochs, the best generator–discriminator pair undergoes **τ** epochs of focused adversarial refinement.
 
 * **Multi‑Task Knowledge Distillation** – transfers softened logits (temperature **T**) and hard targets from the best to the weakest agent, explicitly modelling factor interactions and reducing over‑fitting.
 
