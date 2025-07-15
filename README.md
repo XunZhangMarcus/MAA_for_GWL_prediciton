@@ -8,7 +8,7 @@ _A Robust Framework for Complex Hydro‑Temporal Forecasting_
 **MAA‑GWLP** (Multi‑Agent Adversarial **G**round**w**ater‑**L**evel **P**rediction) is a next‑generation deep‑learning framework for groundwater‑level forecasting.  
 It combines three synergistic mechanisms:
 
-1. **Multi‑Agent Adversarial Learning** – a collective of generators \(G=\{G_i\}\) and discriminators \(D=\{D_j\}\) trained on staggered historical windows, enforcing realism through adaptive, cross‑model discrimination.  
+1. **Multi‑Agent Adversarial Learning** – a collective of generators G_i and discriminators D_j trained on staggered historical windows, enforcing realism through adaptive, cross‑model discrimination.  
 2. **Elite‑Guided Refinement** – periodic, intensive fine‑tuning of the best generator–discriminator pair to accelerate convergence.  
 3. **Multi‑Task Knowledge Distillation** – teacher‑student transfer of both regression and classification knowledge, enabling agents to share complementary skills and to model interactions among heterogeneous drivers (e.g., precipitation ↔ pumping).  
 
@@ -23,18 +23,18 @@ The framework currently ingests **precipitation, temperature, pumping‑rate, an
 | **`run_baseframe.py`** | Baseline training / prediction | LSTM, GRU, Transformer | Deterministic forecasts, standard metrics |
 | **`run_multi_gan.py`** | Full multi‑agent adversarial training / prediction | **MAA‑GWLP** (generators + discriminators, distillation, elite loop) | Probabilistic or point forecasts, attention maps, discriminator scores |
 
-Both pipelines share data loaders, preprocessing utilities, and a unified configuration file (`config.yml`). Switching between single‑agent and multi‑agent modes only requires changing the entry script.
+Both pipelines share data loaders, preprocessing utilities, and a unified configuration file. Switching between single‑agent and multi‑agent modes only requires changing the entry script.
 
 ---
 
 ## 3 · Key Innovations
 * **Cross‑Model Discrimination with Adaptive Windows**  
   *For each pair \((G_i,D_j)\), inputs are temporally aligned according to*  
-  \((X,Y)_{G_i\to D_j}\) *as defined in Eq. (14), under the constraint* \(\min_i w_i > h_{\text{max}}\).  
-* **Dynamic Weight Matrix** \(W_{ij}\) *(Eq. 17)* – modulates the influence of each generator on each discriminator based on validation performance (temperature parameter \(\beta\)).  
-* **Multi‑Objective Generator Loss** *(Eq. 16)* – combines regression (\(\ell_2\)), classification (cross‑entropy), and adversarial deception; hyper‑parameters \(\lambda_{1,2,3}\) control trade‑offs.  
+  \((X,Y)_{G_i\to D_j}\) under the constraint* \(\min_i w_i > h_{\text{max}}\).  
+* **Dynamic Weight Matrix** \(W_{ij}\) – modulates the influence of each generator on each discriminator based on validation performance (temperature parameter \(\beta\)).  
+* **Multi‑Objective Generator Loss** – combines regression (\(\ell_2\)), classification (cross‑entropy), and adversarial deception; hyper‑parameters \(\lambda_{1,2,3}\) control trade‑offs.  
 * **Elite‑Guided Loop** *(Eqs. 18‑21)* – after every \(\kappa\) epochs, the best generator–discriminator pair undergoes \(\tau\) epochs of focused adversarial refinement.  
-* **Multi‑Task Knowledge Distillation** *(Eqs. 22‑24)* – transfers softened logits (temperature \(T\)) and hard targets from the best to the weakest agent, explicitly modelling factor interactions and reducing over‑fitting.  
+* **Multi‑Task Knowledge Distillation** – transfers softened logits (temperature \(T\)) and hard targets from the best to the weakest agent, explicitly modelling factor interactions and reducing over‑fitting.  
 * **Hydrology‑Centric Design** – losses include Nash–Sutcliffe Efficiency (NSE) and Huber; encoders accommodate spatial land‑use categories and multi‑factor couplings.
 
 ---
