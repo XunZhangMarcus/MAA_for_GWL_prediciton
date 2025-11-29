@@ -19,7 +19,6 @@ def run_experiments(args):
                           args.ckpt_dir, args.output_dir,
                           args.window_sizes,
                           args.action,
-                          args.use_financial_loss,
                           ckpt_path=args.ckpt_path,
                           initial_learning_rate=args.lr,
                           train_split=args.train_split,
@@ -49,48 +48,35 @@ def run_experiments(args):
         logger = setup_experiment_logging(args.output_dir, vars(args))
 
         if args.mode == "train":
-            financial_results, results = gca.train(logger)
+            results = gca.train(logger)
         elif args.mode == "pred":
             results = gca.pred()
 
-        # 1. 处理 financial_results
-        result_rows1 = []
-        for idx, res in enumerate(financial_results):
-            for phase in ['train_metrics', 'val_metrics']:
-                metrics = res.get(phase, {})
-                result_row = {
-                    "type": "financial",
-                    "feature_columns": args.feature_columns,
-                    "target_columns": target,
-                    "generator_id": idx + 1,
-                    "phase": "train" if phase == "train_metrics" else "val",
-                    "sharpe_ratio": metrics.get('sharpe_ratio'),
-                    "max_drawdown": metrics.get('max_drawdown'),
-                    "annualized_return": metrics.get('annualized_return'),
-                    "win_rate": metrics.get('win_rate'),
-                    "calmar_ratio": metrics.get('calmar_ratio'),
-                }
-                result_rows1.append(result_row)
-
-        # 2. 处理 results
+        # 处理 results
         result_row2 = {
             "type": "regression",
             "feature_columns": args.feature_columns,
             "target_columns": target,
-            "train_mse": results.get("train_mse"),
-            "train_mae": results.get("train_mae"),
-            "train_rmse": results.get("train_rmse"),
-            "train_mape": results.get("train_mape"),
-            "train_mse_per_target": results.get("train_mse_per_target"),
-            "test_mse": results.get("test_mse"),
-            "test_mae": results.get("test_mae"),
-            "test_rmse": results.get("test_rmse"),
-            "test_mape": results.get("test_mape"),
-            "test_mse_per_target": results.get("test_mse_per_target")
+            "train_mse": results.get("train_mse", [None])[0],
+            "train_mae": results.get("train_mae", [None])[0],
+            "train_rmse": results.get("train_rmse", [None])[0],
+            "train_mape": results.get("train_mape", [None])[0],
+            "train_mse_per_target": results.get("train_mse_per_target", [None])[0],
+            "train_nse": results.get("train_nse", [None])[0],
+            "train_kge": results.get("train_kge", [None])[0],
+            "train_r2": results.get("train_r2", [None])[0],
+            "train_bias": results.get("train_bias", [None])[0],
+            "test_mse": results.get("test_mse", [None])[0],
+            "test_mae": results.get("test_mae", [None])[0],
+            "test_rmse": results.get("test_rmse", [None])[0],
+            "test_mape": results.get("test_mape", [None])[0],
+            "test_mse_per_target": results.get("test_mse_per_target", [None])[0],
+            "test_nse": results.get("test_nse", [None])[0],
+            "test_kge": results.get("test_kge", [None])[0],
+            "test_r2": results.get("test_r2", [None])[0],
+            "test_bias": results.get("test_bias", [None])[0],
         }
-        # 3. 合并并写入
-        all_rows = result_rows1 + [result_row2]
-        df = pd.DataFrame(all_rows)
+        df = pd.DataFrame([result_row2])
         file_exists = os.path.exists(results_file)
         df.to_csv(results_file, mode='a', header=not file_exists, index=False)
 
@@ -109,9 +95,9 @@ if __name__ == "__main__":
     parser.add_argument('--notes', type=str, required=False, help="Leave your setting in this note",
                         default="gru, lstm, transformer")
     parser.add_argument('--data_path', type=str, required=False, help="Path to the input data file",
-                        default="database/goods/Lumber_processed.csv")
+                        default="data/groundwater/sample.csv")
     parser.add_argument('--output_dir', type=str, required=False, help="Directory to save the output",
-                        default="out_put/multi")
+                        default="out_put/groundwater_multi")
     parser.add_argument('--ckpt_dir', type=str, required=False, help="Directory to save the checkpoints",
                         default="ckpt")
     parser.add_argument('--feature_columns', nargs='+', type=int,  help="features choosed to be used as input", default=[1,19,1,19,1,19])
@@ -119,10 +105,8 @@ if __name__ == "__main__":
     parser.add_argument('--start_timestamp', type=int, help="start row", default=31)
     parser.add_argument('--end_timestamp', type=int, help="end row", default=-1)
     parser.add_argument('--window_sizes', nargs='+', type=int, help="Window size for first dimension", default=[5, 10, 15])
-    parser.add_argument('--action', type=bool, help="Whether to act or not",
-                        default=True)
-    parser.add_argument('--use_financial_loss', type=bool, help="Whether to act or not",
-                        default=True)
+    parser.add_argument('--action', type=bool, help="Enable classification head for rise/flat/fall labeling",
+                        default=False)
 
     parser.add_argument('--N_pairs', "-n", type=int, help="numbers of generators etc.", default=3)
     parser.add_argument('--num_classes', "-n_cls", type=int, help="numbers of class in classifier head, e.g. 0 par/1 rise/2 fall", default=3)

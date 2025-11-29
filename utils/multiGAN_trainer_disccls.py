@@ -1,7 +1,7 @@
 import torch.nn as nn
 import copy
 
-from .evaluate_visualization_for_financial_loss import *
+from utils.evaluate_visualization import *
 import torch.optim.lr_scheduler as lr_scheduler
 import time
 import torch.nn.functional as F
@@ -32,8 +32,7 @@ def train_multi_gan(args, generators, discriminators, dataloaders,
                         [0.333, 0.333, 0.333, 1.0]  # gammas_final...
                     ],
                     logger=None,
-                    dynamic_weight=False,
-                    use_financial_loss=False):
+                    dynamic_weight=False):
     N = len(generators)
 
     assert N == len(discriminators)
@@ -100,9 +99,6 @@ def train_multi_gan(args, generators, discriminators, dataloaders,
     patience = 15
     feature_num = train_xes[0].shape[2]
     target_num = train_y.shape[-1]
-
-    # 记录五个财务指标的过程曲线
-    metrics_history = []
 
     print("start training")
     for epoch in range(num_epochs):
@@ -175,9 +171,7 @@ def train_multi_gan(args, generators, discriminators, dataloaders,
                                                 generators, discriminators,
                                                 window_sizes, target_num,
                                                 criterion, weight_matrix,
-                                                device, mode="train_D",
-                                                y_scaler=y_scaler,
-                                                use_financial_loss=use_financial_loss)
+                                                device, mode="train_D")
 
             # 3. 存入 loss_dict
             for i in range(N):
@@ -220,8 +214,7 @@ def train_multi_gan(args, generators, discriminators, dataloaders,
                                                    window_sizes, target_num,
                                                    criterion, weight,
                                                    device,
-                                                   mode="train_G", y_scaler=y_scaler,
-                                                   use_financial_loss=use_financial_loss)
+                                                   mode="train_G")
 
             for i in range(N):
                 loss_dict[g_keys[i]].append(loss_G[i].item())
@@ -307,8 +300,7 @@ def train_multi_gan(args, generators, discriminators, dataloaders,
                                                         [generators[G_rank[0]]], [discriminators[D_rank[0]]],
                                                         [window_sizes[D_rank[0]]], target_num,
                                                         criterion, weight_matrix[D_rank[0], G_rank[0]],
-                                                        device, mode="train_D", y_scaler=y_scaler,
-                                                        use_financial_loss=use_financial_loss)
+                                                        device, mode="train_D")
 
                     optimizers_D[D_rank[0]].zero_grad()
 
@@ -328,8 +320,7 @@ def train_multi_gan(args, generators, discriminators, dataloaders,
                                                            [window_sizes[D_rank[0]]], target_num,
                                                            criterion, weight[D_rank[0], G_rank[0]],
                                                            device,
-                                                           mode="train_G", y_scaler=y_scaler,
-                                                           use_financial_loss=use_financial_loss)
+                                                           mode="train_G")
 
                     # for index, generator in enumerate(generators):
                     #     validate_financial_metric(generator, train_xes[index], train_y, val_xes[index], val_y, y_scaler)
@@ -382,25 +373,9 @@ def train_multi_gan(args, generators, discriminators, dataloaders,
         epo_end = time.time()
         print(f"Epoch time: {epo_end - epo_start:.4f}")
 
-        # ================验证财务指标 ==================================================================
-        results_financial = []
-        for i in range(N):
-            train_metrics, val_metrics = validate_financial_metric(generators[i], train_xes[i], train_y, val_xes[i],
-                                                                   val_y, y_scaler)
-            results_financial.append({
-                'train_metrics': train_metrics[0],  # 因为validate_financial_metric返回的是列表，我们取第一个元素
-                'val_metrics': val_metrics[0]
-            })
-        print_metrics(results_financial)
-
         # ================== 验证常用指标=========================================================================
         results = evaluate_best_models(generators, best_model_state, train_xes, train_y, val_xes,
                                        val_y, y_scaler, output_dir)
-        # ================== 保存五个Financial metric的变化过程曲线=========================================================================
-
-        append_financial_metrics(metrics_history, results_financial, epoch)
-
-    save_financial_metrics_csv(metrics_history, output_dir=output_dir)
 
     data_G = [[[] for _ in range(4)] for _ in range(N)]
     data_D = [[[] for _ in range(4)] for _ in range(N)]
@@ -432,7 +407,7 @@ def train_multi_gan(args, generators, discriminators, dataloaders,
         print(f"G{i + 1} best epoch: ", best_epoch[i])
         logging.info(f"G{i + 1} best epoch: {best_epoch[i]}", )  # NEW
 
-    return results_financial, results, best_model_state
+    return results, best_model_state
 
 
 def discriminate_fake(args, X, Y, LABELS,
@@ -440,7 +415,7 @@ def discriminate_fake(args, X, Y, LABELS,
                       window_sizes, target_num,
                       criterion, weight_matrix,
                       device,
-                      mode, y_scaler, use_financial_loss):
+                      mode):
     assert mode in ["train_D", "train_G"]
 
     N = len(generators)
@@ -540,37 +515,16 @@ def discriminate_fake(args, X, Y, LABELS,
         loss_DorG = torch.multiply(weight, loss_matrix).sum(dim=1)  # [N, N] --> [N, ]
 
         if mode == "train_G":
-            if use_financial_loss:
-                # ------------------ 方案 B：含财务指标 ------------------
-                # MSE 损失
-                loss_mse_G = [F.mse_loss(fake_data.squeeze(), y[:, -1, :].squeeze()) for (fake_data, y) in
-                              zip(fake_data_G, Y)]
-                loss_matrix = loss_mse_G
-                loss_DorG = loss_DorG + torch.stack(loss_matrix).to(device)  # 判别器损失加上mse损失
-                print(loss_DorG[0])
-                # 财务指标损失
-                financial_return_loss = calculate_financial_loss(generators, X, Y, y_scaler).to(device)
-                loss_DorG = loss_DorG - 2000 * financial_return_loss  # 需要最大化财务指标，所以是减去
-
-                print("财务指标损失（每个生成器）:")
-                for idx, loss in enumerate(financial_return_loss):
-                    print(f"Generator {idx}: {2000*loss.item():.4f}")
-            else:
-                # ------------------ 方案 A：无财务指标 ------------------
-                loss_mse_G = [F.mse_loss(fake_data.squeeze(), y[:, -1, :].squeeze()) for (fake_data, y) in
-                              zip(fake_data_G, Y)]
-                loss_matrix = loss_mse_G
-                loss_DorG = loss_DorG + torch.stack(loss_matrix).to(device)
-                # ---------------- 添加分类损失 -----------------
-                # 针对每个生成器的分类分支计算交叉熵损失
-                # LABELS 作为真实标签传入（假设其 shape 与 fake_data_cls[i] 第一维度匹配）
-                cls_losses = [F.cross_entropy(fake_cls, l[:, -1, :].squeeze()) for (fake_cls, l) in
-                              zip(fake_logits_G, LABELS)]
-                # 可以取平均或者加总（此处取平均）
-                classification_loss = torch.stack(cls_losses)
-                # 合并生成器的 loss：原始 loss 与分类 loss 相加
-                loss_DorG = loss_DorG + classification_loss
-                # --------------------------------------------------
+            loss_mse_G = [F.mse_loss(fake_data.squeeze(), y[:, -1, :].squeeze()) for (fake_data, y) in
+                          zip(fake_data_G, Y)]
+            loss_matrix = loss_mse_G
+            loss_DorG = loss_DorG + torch.stack(loss_matrix).to(device)
+            # ---------------- 添加分类损失 -----------------
+            cls_losses = [F.cross_entropy(fake_cls, l[:, -1, :].squeeze()) for (fake_cls, l) in
+                          zip(fake_logits_G, LABELS)]
+            classification_loss = torch.stack(cls_losses)
+            loss_DorG = loss_DorG + classification_loss
+            # --------------------------------------------------
 
     return loss_DorG, loss_matrix
 

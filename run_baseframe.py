@@ -55,16 +55,24 @@ def run_experiments(args):
         result_row = {
             "feature_columns": args.feature_columns,
             "target_columns": target,
-            "train_mse": results["train_mse"],
-            "train_mae": results["train_mae"],
-            "train_rmse": results["train_rmse"],
-            "train_mape": results["train_mape"],
-            "train_mse_per_target": results["train_mse_per_target"],
-            "test_mse": results["test_mse"],
-            "test_mae": results["test_mae"],
-            "test_rmse": results["test_rmse"],
-            "test_mape": results["test_mape"],
-            "test_mse_per_target": results["test_mse_per_target"]
+            "train_mse": results["train_mse"][0],
+            "train_mae": results["train_mae"][0],
+            "train_rmse": results["train_rmse"][0],
+            "train_mape": results["train_mape"][0],
+            "train_mse_per_target": results["train_mse_per_target"][0],
+            "train_nse": results.get("train_nse", [None])[0],
+            "train_kge": results.get("train_kge", [None])[0],
+            "train_r2": results.get("train_r2", [None])[0],
+            "train_bias": results.get("train_bias", [None])[0],
+            "test_mse": results["test_mse"][0],
+            "test_mae": results["test_mae"][0],
+            "test_rmse": results["test_rmse"][0],
+            "test_mape": results["test_mape"][0],
+            "test_mse_per_target": results["test_mse_per_target"][0],
+            "test_nse": results.get("test_nse", [None])[0],
+            "test_kge": results.get("test_kge", [None])[0],
+            "test_r2": results.get("test_r2", [None])[0],
+            "test_bias": results.get("test_bias", [None])[0],
         }
         df = pd.DataFrame([result_row])
         df.to_csv(results_file, mode='a', header=not pd.io.common.file_exists(results_file), index=False)
@@ -84,9 +92,9 @@ if __name__ == "__main__":
     parser.add_argument('--notes', type=str, required=False, help="Leave your setting in this note",
                         default="回测300股指自回归")
     parser.add_argument('--data_path', type=str, required=False, help="Path to the input data file",
-                        default="database/zx_processed_day.csv")
+                        default="data/groundwater/sample.csv")
     parser.add_argument('--output_dir', type=str, required=False, help="Directory to save the output",
-                        default="out_put/baseframe")
+                        default="out_put/groundwater_base")
     parser.add_argument('--ckpt_dir', type=str, required=False, help="Directory to save the checkpoints",
                         default="ckpt")
     parser.add_argument('--feature_columns', type=list, help="Window size for first dimension", default=list(range(1,19)))
@@ -95,8 +103,8 @@ if __name__ == "__main__":
     parser.add_argument('--end_timestamp', type=int, help="end row", default=-1)
     parser.add_argument('--window_sizes', nargs='+', type=int, help="Window size for first dimension", default=[15]) #, 10, 15
     parser.add_argument('--predict_step', type=int, help="Window size for first dimension", default=1) #, 10, 15
-    parser.add_argument('--action', nargs='+', type=bool, help="Window size for first dimension",
-                        default=True)  # , 10, 15
+    parser.add_argument('--action', nargs='+', type=bool, help="Enable classification head for rise/flat/fall labeling",
+                        default=False)  # , 10, 15
     parser.add_argument('--N_pairs', "-n", type=int, help="numbers of generators etc.", default=1)
     parser.add_argument('--num_classes', "-n_cls", type=int, help="numbers of class in classifier head, e.g. 0 par/1 rise/2 fall", default=3)
     parser.add_argument('--generators', "-gens", nargs='+', type=str, help="names of generators",

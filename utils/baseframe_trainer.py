@@ -98,9 +98,6 @@ def train_baseframe(generator, dataloader,
             scheduler.step(total_loss)
 
         val_loss, acc = validate(generator, val_x, val_y, val_label_y, predict_step)
-        if action:
-            train_metrics_list, val_metrics_list = validate_financial_metric(generator, train_x, train_y, val_x, val_y,
-                                                                             y_scaler)
 
         print(f'Validate MSE_loss: {val_loss}...')
         print(f'Validate acc: {acc}')

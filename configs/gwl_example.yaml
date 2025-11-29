@@ -1,0 +1,33 @@
+# Example config for groundwater-level prediction
+# Fill in your own paths and column indices before running.
+
+data_path: data/groundwater/sample.csv
+output_dir: out_put/groundwater_multi
+ckpt_dir: ckpt
+
+# Column indices (0-based)
+target_columns: [[0]]           # groundwater level
+feature_columns: [1,2,3,4,5, 1,2,3,4,5, 1,2,3,4,5]   # grouped per window
+
+# Train/validation split and windows
+start_timestamp: 0
+end_timestamp: -1               # use full length
+train_split: 0.7
+window_sizes: [15, 30, 45]
+predict_step: 1
+
+# Model/optimizer
+generators: [gru, lstm, transformer]
+discriminators: null
+batch_size: 256
+num_epochs: 200
+lr: 2e-5
+N_pairs: 3
+
+# Distillation / cross-finetune
+distill_epochs: 1
+cross_finetune_epochs: 5
+
+# Device and reproducibility
+device: [0]
+random_seed: 3407

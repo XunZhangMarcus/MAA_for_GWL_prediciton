@@ -108,7 +108,6 @@ class MAA_time_series(GCABase):
                  ckpt_dir: str, output_dir: str,
                  window_sizes: int,
                  action: bool = False,
-                 use_financial_loss: bool = False,  # 是否使用金融损失函数
                  initial_learning_rate: float = 2e-5,
                  train_split: float = 0.8,
                  do_distill_epochs: int = 1,
@@ -148,7 +147,6 @@ class MAA_time_series(GCABase):
         self.args = args
         self.window_sizes = window_sizes
         self.action = action
-        self.use_financial_loss = use_financial_loss
         # 初始化空字典
         self.generator_dict = {}
         self.discriminator_dict = {"default": models.Discriminator3}
@@ -416,21 +414,20 @@ class MAA_time_series(GCABase):
         self.schedular_min_lr = 1e-7
 
     def train(self, logger):
-        financial_results, results, best_model_state = train_multi_gan(self.args, self.generators, self.discriminators, self.dataloaders,
+        results, best_model_state = train_multi_gan(self.args, self.generators, self.discriminators, self.dataloaders,
                                                     self.window_sizes,
                                                     self.y_scaler, self.train_x_all, self.train_y_all, self.test_x_all,
-                                                    self.test_y_all, self.train_label_gan_all,self.test_label_gan_all,
-                                                    self.do_distill_epochs,self.cross_finetune_epochs,
+                                                    self.test_y_all, self.train_label_gan_all, self.test_label_gan_all,
+                                                    self.do_distill_epochs, self.cross_finetune_epochs,
                                                     self.num_epochs,
                                                     self.output_dir,
                                                     self.device,
                                                     init_GDweight=self.init_GDweight,
                                                     final_GDweight=self.final_GDweight,
-                                                    logger=logger,
-                                                    use_financial_loss=self.use_financial_loss)
+                                                    logger=logger)
 
         self.save_models(best_model_state)
-        return financial_results, results
+        return results
 
     def save_models(self, best_model_state):
         """
