@@ -44,7 +44,7 @@ def bias(obs, sim):
 
 # ------------ Core helpers ------------ #
 def inverse_transform(predictions, scaler):
-    """逆转换预测结果，保持原始形状。"""
+    """Inverse-transform predictions while preserving the original shape."""
     if isinstance(predictions, torch.Tensor):
         predictions = predictions.cpu().numpy()
     original_shape = predictions.shape
@@ -53,7 +53,7 @@ def inverse_transform(predictions, scaler):
 
 
 def compute_metrics(true_values, predicted_values):
-    """计算回归指标（MSE/MAE/RMSE/MAPE/NSE/KGE/R2/Bias）。"""
+    """Compute regression metrics (MSE/MAE/RMSE/MAPE/NSE/KGE/R2/Bias)."""
     true_arr = np.array(true_values)
     pred_arr = np.array(predicted_values)
 
@@ -82,7 +82,7 @@ def compute_metrics(true_values, predicted_values):
 
 
 def validate(model, val_x, val_y, val_label_y, predict_step=1, device="cuda"):
-    """验证阶段的 MSE 与分类精度。"""
+    """Validation MSE and classification accuracy."""
     model.eval()
     model = model.to(device)
     with torch.no_grad():
@@ -113,7 +113,7 @@ def validate(model, val_x, val_y, val_label_y, predict_step=1, device="cuda"):
 
 
 def validate_with_label(model, val_x, val_y, val_labels):
-    """仅依赖标签的验证（用于多 GAN 训练阶段）。"""
+    """Label-driven validation (used inside multi-GAN training)."""
     model.eval()
     with torch.no_grad():
         val_x = val_x.clone().detach().float()
@@ -314,7 +314,7 @@ def evaluate_best_models(generators, best_model_state, train_xes, train_y, test_
 
 
 def evaluate_best_models_for_backtrader(generators, best_model_state, train_xes, train_y, test_xes, test_y, y_scaler, output_dir):
-    # 保留接口以兼容旧调用，内部复用 evaluate_best_models 的结果并额外返回预测
+    # Kept for legacy callers; reuses evaluate_best_models and returns predictions.
     result = evaluate_best_models(generators, best_model_state, train_xes, train_y, test_xes, test_y, y_scaler, output_dir)
     test_preds_inv = []
     for i in range(len(generators)):

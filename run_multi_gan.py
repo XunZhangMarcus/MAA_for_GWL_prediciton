@@ -126,9 +126,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--amp_dtype",
         type=str,
-        default="none",  # 可选：'float16', 'bfloat16', 'none'
+        default="none",  # options: 'float16', 'bfloat16', 'none'
         choices=["float16", "bfloat16", "none"],
-        help="自动混合精度类型（AMP）：float16, bfloat16, 或 none（禁用）"
+        help="Automatic Mixed Precision (AMP) type: float16, bfloat16, or none"
     )
     parser.add_argument('--mode', type=str, choices=["pred", "train"],
                         help="If train, it will also pred, while it predicts, it will laod the model checkpoint saved before.",

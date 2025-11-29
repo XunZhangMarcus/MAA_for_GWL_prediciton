@@ -323,7 +323,6 @@ def train_multi_gan(args, generators, discriminators, dataloaders,
                                                            mode="train_G")
 
                     # for index, generator in enumerate(generators):
-                    #     validate_financial_metric(generator, train_xes[index], train_y, val_xes[index], val_y, y_scaler)
 
                     optimizers_G[G_rank[0]].zero_grad()
                     # loss_G.sum(dim=0).backward()

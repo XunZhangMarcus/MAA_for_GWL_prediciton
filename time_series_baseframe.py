@@ -211,8 +211,8 @@ class base_time_series(GCABase):
         self.test_y = self.y_scaler.transform(test_y)
 
         if self.action:
-            assert start_row >= 14, "start_row 必须 >= 14"
-            print("generating action labels")
+            assert start_row >= 14, "start_row must be >= 14 when action labels are enabled"
+            print("Generating action labels")
             labels=generate_action_labels(data)[start_row:end_row]
             self.train_labels=labels[:train_size]
             self.test_labels=labels[train_size:]

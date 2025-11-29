@@ -90,7 +90,7 @@ if __name__ == "__main__":
     # 使用argparse解析命令行参数
     parser = argparse.ArgumentParser(description="Run experiments for triple GAN model")
     parser.add_argument('--notes', type=str, required=False, help="Leave your setting in this note",
-                        default="回测300股指自回归")
+                        default="baseline groundwater run")
     parser.add_argument('--data_path', type=str, required=False, help="Path to the input data file",
                         default="data/groundwater/sample.csv")
     parser.add_argument('--output_dir', type=str, required=False, help="Directory to save the output",
@@ -122,9 +122,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--amp_dtype",
         type=str,
-        default="none",  # 可选：'float16', 'bfloat16', 'none'
+        default="none",  # options: 'float16', 'bfloat16', 'none'
         choices=["float16", "bfloat16", "none"],
-        help="自动混合精度类型（AMP）：float16, bfloat16, 或 none（禁用）"
+        help="Automatic Mixed Precision (AMP) type: float16, bfloat16, or none"
     )
     parser.add_argument('--mode', type=str, choices=["pred", "train"],
                         help="If train, it will also pred, while it predicts, it will load the model checkpoint saved before.",
