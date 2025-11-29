@@ -1,6 +1,7 @@
 # MAA-GWLP · Multi-Agent Adversarial Groundwater-Level Prediction
 
-Multi-agent adversarial learning for groundwater-level forecasting with GRU/LSTM/Transformer generators and paired discriminators. The framework supports multi-window inputs, knowledge distillation, cross-finetuning, and hydrology-focused metrics (NSE, KGE, R², Bias, RMSE, MAE, MAPE). All finance/quant components have been removed.
+Multi-agent adversarial learning for groundwater-level forecasting with GRU/LSTM/Transformer generators and paired discriminators. The framework supports multi-window inputs, knowledge distillation, cross-finetuning, and hydrology-focused metrics (NSE, KGE, R², Bias, RMSE, MAE, MAPE).
+<img width="3685" height="2182" alt="图片1" src="https://github.com/user-attachments/assets/967067b8-aaea-4eae-9eb6-7ee67919cf46" />
 
 ---
 
